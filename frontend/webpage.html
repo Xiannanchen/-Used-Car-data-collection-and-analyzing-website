@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en" class="h-100">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="bootstrap.min.css">
+
+    <title>Car</title>
+
+    <style type="text/css">
+        table {
+            counter-reset: row-num;
+        }
+
+        table tbody tr {
+            counter-increment: row-num;
+        }
+
+        table tbody tr td:first-child::before {
+            content: counter(row-num) "";
+        }
+
+        [v-cloak] {
+            display: none
+        }
+    </style>
+</head>
+
+<body class="h-100">
+    <div class="container-fluid p-5 h-100">
+        <div class="row h-100">
+            <div class="col">
+                <div id="app" class="shadow-lg p-3 mb-5 bg-white rounded">
+                    <form @submit.prevent="onSubmit" class="form-inline" id="form">
+                        <label class="mb-2 mr-2 text-capitalize" for="body_type">your body type</label>
+                        <select class="form-control mb-2 mr-sm-2" id="body_type" v-model="form.body_type" required
+                            name="body_type">
+                            <option value="1">Coupe</option>
+                            <option value="2">Sedan</option>
+                            <option value="3">Suv</option>
+                            <option value="4">Truck</option>
+                            <option value="5">Hatchback</option>
+                            <option value="6">Wagon</option>
+                        </select>
+                        <label class="mb-2 mr-2 text-capitalize" for="postal_code">postal code</label>
+                        <input class="form-control mb-2 mr-sm-2" id="postal_code" name="postal_code" type="text"
+                            required v-model="form.postal_code">
+                        <label class="mb-2 mr-2 text-capitalize" for="min_year">min year</label>
+                        <input class="form-control mb-2 mr-sm-2" id="min_year" name="min_year" type="number" min="1900"
+                            required max="2099" step="1" v-model="form.min_year">
+                        <label class="mb-2 mr-2 text-capitalize" for="budget">budget</label>
+                        <input class="form-control mb-2 mr-sm-2" id="budget" name="budget" type="number" min="1000"
+                            required max="100000" step="1000" v-model="form.budget">
+
+                        <button v-cloak v-if="loading" class="btn btn-primary mb-2" type="button" disabled>
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            Loading...
+                        </button>
+                        <button v-cloak v-else type="submit" class="btn btn-primary mb-2">
+                            Submit
+                        </button>
+                    </form>
+
+                    <table v-cloak v-show="Object.keys(list).length !== 0"
+                        class="table table-hover table-bordered mt-2">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">name</th>
+                                <th scope="col">make</th>
+                                <th scope="col">model</th>
+                                <th scope="col">year</th>
+                                <th scope="col">km</th>
+                                <th scope="col">drivetrain</th>
+                                <th scope="col">price</th>
+                                <th scope="col">type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template v-for="(value, type, ind) in list">
+                                <tr v-for="(item, index) in value" :key="type+'-'+index">
+                                    <td></td>
+                                    <td v-text="item.name"></td>
+                                    <td v-text="item.make"></td>
+                                    <td v-text="item.model"></td>
+                                    <td v-text="item.year"></td>
+                                    <td v-text="item.km"></td>
+                                    <td v-text="item.drivetrain"></td>
+                                    <td v-text="item.price"></td>
+                                    <td>
+                                        <span
+                                            :class="['badge',{'badge-info': type=='luxury','badge-light': type=='compact'}]"
+                                            v-text="type"></span>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="jquery.min.js"></script>
+    <script src="vue.min.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                loading: false,
+                form: {
+                    body_type: '1',
+                    postal_code: 'k1n0b6',
+                    min_year: '2016',
+                    budget: 40000,
+                },
+                list: {}
+            },
+            computed: {
+                types: function () {
+                    return Object.keys(this.list)
+                }
+            },
+            methods: {
+                onSubmit: function (event) {
+                    // console.log(event.target)
+                    // console.log(this.form)
+                    this.submit(event)
+                },
+                submit: function (e) {
+                    const vm = this
+                    e.preventDefault()
+                    var data = $("#form").serialize()
+                    // console.log('todo...')
+                    console.log(data)
+                    // return;
+
+                    var request = $.ajax({
+                        url: "data",
+                        method: "POST",
+                        data: data,
+                    });
+
+                    vm.loading = true
+
+                    request.done(function (data) {
+                        console.log(data)
+                        vm.list = data
+                    });
+
+                    request.fail(function (jqXHR, textStatus, errorThrown) {
+                        // alert("Request failed: " + textStatus);
+                        // console.log(jqXHR, textStatus, errorThrown)
+                        alert("Request failed: " + jqXHR.responseText);
+                    });
+
+                    request.always(function (params) {
+                        vm.loading = false
+                    })
+                }
+            }
+        })
+    </script>
+    <script>
+        $(() => {
+            console.log('loaded...')
+            // https://api.jquery.com/jquery.ajax/
+            // $("#form").on('submit', submit);
+        })
+    </script>
+</body>
+
+</html>
